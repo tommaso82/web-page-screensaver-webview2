@@ -8,8 +8,9 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using System.Diagnostics;
+using Microsoft.Web.WebView2.Core;
 
-namespace pl.polidea.lab.Web_Page_Screensaver
+namespace Web_Page_Screensaver
 {
     public partial class ScreensaverForm : Form
     {
@@ -90,7 +91,7 @@ namespace pl.polidea.lab.Web_Page_Screensaver
             }
             else
             {
-                webView1.Visible = false;
+                webView2.Visible = false;
             }
         }
 
@@ -101,15 +102,16 @@ namespace pl.polidea.lab.Web_Page_Screensaver
 
             if (string.IsNullOrWhiteSpace(url))
             {
-                webView1.Visible = false;
+                webView2.Visible = false;
             }
             else
             {
-                webView1.Visible = true;
+                webView2.Visible = true;
                 try
                 {
                     Debug.WriteLine($"Navigating: {url}");
-                    webView1.Navigate(url);
+
+                    webView2.Source = new Uri(url);
                 }
                 catch
                 {

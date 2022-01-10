@@ -1,4 +1,4 @@
-﻿namespace pl.polidea.lab.Web_Page_Screensaver
+﻿namespace Web_Page_Screensaver
 {
     using global::Web_Page_Screensaver;
 
@@ -38,7 +38,7 @@
             this.cbCloseOnActivity = new System.Windows.Forms.CheckBox();
             this.screenTabControl = new System.Windows.Forms.TabControl();
             this.screenTabPage1 = new System.Windows.Forms.TabPage();
-            this.prefsByScreenUserControl1 = new PrefsByScreenUserControl();
+            this.prefsByScreenUserControl1 = new Web_Page_Screensaver.PrefsByScreenUserControl();
             this.spanScreensButton = new System.Windows.Forms.RadioButton();
             this.separateScreensButton = new System.Windows.Forms.RadioButton();
             this.label4 = new System.Windows.Forms.Label();
@@ -77,7 +77,7 @@
             // 
             this.okButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.okButton.DialogResult = System.Windows.Forms.DialogResult.OK;
-            this.okButton.Location = new System.Drawing.Point(127, 441);
+            this.okButton.Location = new System.Drawing.Point(173, 515);
             this.okButton.Margin = new System.Windows.Forms.Padding(4);
             this.okButton.Name = "okButton";
             this.okButton.Size = new System.Drawing.Size(100, 28);
@@ -90,7 +90,7 @@
             // 
             this.cancelButton.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.cancelButton.DialogResult = System.Windows.Forms.DialogResult.Cancel;
-            this.cancelButton.Location = new System.Drawing.Point(235, 441);
+            this.cancelButton.Location = new System.Drawing.Point(281, 515);
             this.cancelButton.Margin = new System.Windows.Forms.Padding(4);
             this.cancelButton.Name = "cancelButton";
             this.cancelButton.Size = new System.Drawing.Size(100, 28);
@@ -105,7 +105,7 @@
             this.cbCloseOnActivity.AutoSize = true;
             this.cbCloseOnActivity.Checked = true;
             this.cbCloseOnActivity.CheckState = System.Windows.Forms.CheckState.Checked;
-            this.cbCloseOnActivity.Location = new System.Drawing.Point(20, 411);
+            this.cbCloseOnActivity.Location = new System.Drawing.Point(20, 485);
             this.cbCloseOnActivity.Margin = new System.Windows.Forms.Padding(4);
             this.cbCloseOnActivity.Name = "cbCloseOnActivity";
             this.cbCloseOnActivity.Size = new System.Drawing.Size(200, 21);
@@ -122,29 +122,33 @@
             this.screenTabControl.Location = new System.Drawing.Point(20, 119);
             this.screenTabControl.Name = "screenTabControl";
             this.screenTabControl.SelectedIndex = 0;
-            this.screenTabControl.Size = new System.Drawing.Size(319, 271);
+            this.screenTabControl.Size = new System.Drawing.Size(374, 359);
             this.screenTabControl.TabIndex = 13;
             // 
             // screenTabPage1
             // 
+            this.screenTabPage1.AutoScroll = true;
             this.screenTabPage1.Controls.Add(this.prefsByScreenUserControl1);
             this.screenTabPage1.Location = new System.Drawing.Point(4, 25);
+            this.screenTabPage1.Margin = new System.Windows.Forms.Padding(0);
             this.screenTabPage1.Name = "screenTabPage1";
-            this.screenTabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.screenTabPage1.Size = new System.Drawing.Size(311, 242);
+            this.screenTabPage1.Size = new System.Drawing.Size(366, 330);
             this.screenTabPage1.TabIndex = 0;
             this.screenTabPage1.Text = "Screen 1";
             this.screenTabPage1.UseVisualStyleBackColor = true;
             // 
             // prefsByScreenUserControl1
             // 
-            this.prefsByScreenUserControl1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.prefsByScreenUserControl1.AutoScroll = true;
+            this.prefsByScreenUserControl1.AutoSize = true;
+            this.prefsByScreenUserControl1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
             this.prefsByScreenUserControl1.BackColor = System.Drawing.Color.White;
+            this.prefsByScreenUserControl1.Dock = System.Windows.Forms.DockStyle.Fill;
             this.prefsByScreenUserControl1.Location = new System.Drawing.Point(0, 0);
+            this.prefsByScreenUserControl1.Margin = new System.Windows.Forms.Padding(0);
+            this.prefsByScreenUserControl1.MinimumSize = new System.Drawing.Size(300, 0);
             this.prefsByScreenUserControl1.Name = "prefsByScreenUserControl1";
-            this.prefsByScreenUserControl1.Size = new System.Drawing.Size(312, 242);
+            this.prefsByScreenUserControl1.Size = new System.Drawing.Size(366, 330);
             this.prefsByScreenUserControl1.TabIndex = 21;
             // 
             // spanScreensButton
@@ -228,7 +232,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.CancelButton = this.cancelButton;
-            this.ClientSize = new System.Drawing.Size(360, 478);
+            this.ClientSize = new System.Drawing.Size(406, 552);
             this.Controls.Add(this.multiScreenGroup);
             this.Controls.Add(this.screenTabControl);
             this.Controls.Add(this.cbCloseOnActivity);
@@ -248,6 +252,7 @@
             this.Load += new System.EventHandler(this.PreferencesForm_Load);
             this.screenTabControl.ResumeLayout(false);
             this.screenTabPage1.ResumeLayout(false);
+            this.screenTabPage1.PerformLayout();
             this.multiScreenGroup.ResumeLayout(false);
             this.multiScreenGroup.PerformLayout();
             this.ResumeLayout(false);

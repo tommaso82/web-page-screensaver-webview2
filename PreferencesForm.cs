@@ -3,7 +3,7 @@ using System.Linq;
 using Microsoft.Win32;
 using System.Windows.Forms;
 
-namespace pl.polidea.lab.Web_Page_Screensaver
+namespace Web_Page_Screensaver
 {
     using System.Collections.Generic;
     using System.Drawing;
@@ -32,8 +32,9 @@ namespace pl.polidea.lab.Web_Page_Screensaver
             {
                 multiScreenGroup.Enabled = true;
                 SetMultiScreenButtonFromMode();
-                ArrangeScreenTabs();
             }
+
+            ArrangeScreenTabs();
         }
 
         private void LoadValuesForTab(int screenNum)
@@ -78,8 +79,10 @@ namespace pl.polidea.lab.Web_Page_Screensaver
                                     Location = new Point(0, 0), //prefsByScreenUserControl1.Location,
                                     Size = prefsByScreenUserControl1.Size,
                                     Anchor = prefsByScreenUserControl1.Anchor,
-                                    BackColor = prefsByScreenUserControl1.BackColor
+                                    BackColor = prefsByScreenUserControl1.BackColor,
+                                    Dock = DockStyle.Fill
                                 };
+                                prefsByScreenUserControl.AutoScroll = true;
                                 prefsByScreenUserControl.lvUrls.ContextMenuStrip =
                                     prefsByScreenUserControl1.ContextMenuStrip;
                                 screenUserControls.Add(prefsByScreenUserControl);
