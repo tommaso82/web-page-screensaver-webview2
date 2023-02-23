@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using Microsoft.Win32;
 using System.Diagnostics;
 using Microsoft.Web.WebView2.Core;
+using Gma.System.MouseKeyHook;
 
 namespace Web_Page_Screensaver
 {
@@ -17,10 +18,10 @@ namespace Web_Page_Screensaver
         private DateTime StartTime;
         private Timer timer;
         private int currentSiteIndex = -1;
-        private GlobalUserEventHandler userEventHandler;
         private bool shuffleOrder;
         private List<string> urls;
-
+        private IKeyboardMouseEvents m_GlobalHook;
+        private Timer ctrl_timer = new Timer();
         private PreferencesManager prefsManager = new PreferencesManager();
 
         private int screenNum;
@@ -30,14 +31,15 @@ namespace Web_Page_Screensaver
 
         public ScreensaverForm(int? screenNumber = null)
         {
-            userEventHandler = new GlobalUserEventHandler();
-            userEventHandler.Event += new GlobalUserEventHandler.UserEvent(HandleUserActivity);
-
+            //userEventHandler = new GlobalUserEventHandler();
+            //serEventHandler.Event += new GlobalUserEventHandler.UserEvent(HandleUserActivity);            
             if (screenNumber == null) screenNum = prefsManager.EffectiveScreensList.FindIndex(s => s.IsPrimary);
             else screenNum = (int)screenNumber;
 
             InitializeComponent();
-
+            Subscribe();
+            ctrl_timer.Interval = 3500;
+            ctrl_timer.Tick += new EventHandler(ctrl_timer_Tick);
             Cursor.Hide();
         }
 
@@ -54,6 +56,21 @@ namespace Web_Page_Screensaver
             }
         }
 
+        public void Subscribe()
+        {
+            // Note: for the application hook, use the Hook.AppEvents() instead
+            m_GlobalHook = Hook.GlobalEvents();
+            m_GlobalHook.KeyDown += KeyHook;
+            m_GlobalHook.MouseMoveExt += MouseHook;
+        }
+        public void Unsubscribe()
+        {
+            m_GlobalHook.KeyDown -= KeyHook;
+            m_GlobalHook.MouseMoveExt -= MouseHook;
+
+            //It is recommened to dispose it
+            //m_GlobalHook.Dispose();
+        }
         private void ScreensaverForm_Load(object sender, EventArgs e)
         {
             if (Urls.Any())
@@ -98,7 +115,6 @@ namespace Web_Page_Screensaver
         private void BrowseTo(string url)
         {
             // Disable the user event handler while navigating
-            Application.RemoveMessageFilter(userEventHandler);
 
             if (string.IsNullOrWhiteSpace(url))
             {
@@ -118,7 +134,6 @@ namespace Web_Page_Screensaver
                     // This can happen if IE pops up a window that isn't closed before the next call to Navigate()
                 }
             }
-            Application.AddMessageFilter(userEventHandler);
         }
 
         private void RotateSite()
@@ -134,10 +149,17 @@ namespace Web_Page_Screensaver
 
             BrowseTo(url);
         }
-
-        private void HandleUserActivity()
+        private void KeyHook(object sender, KeyEventArgs e)
         {
-            if (StartTime.AddSeconds(1) > DateTime.Now) return;
+            UserEvent();
+        }
+        private void MouseHook(object sender, MouseEventExtArgs e)
+        {
+            UserEvent();
+        }
+        private void UserEvent()
+        {
+            if (StartTime.AddMilliseconds(20) > DateTime.Now) return;
 
             if (prefsManager.CloseOnActivity)
             {
@@ -147,49 +169,56 @@ namespace Web_Page_Screensaver
             {
                 closeButton.Visible = true;
                 Cursor.Show();
+                webView2.Enabled = true;
+                Unsubscribe();
+                ctrl_timer.Start();
             }
         }
 
+        private void ctrl_timer_Tick(object sender, EventArgs e)
+        {
+            // Hide the close button and cursor when the timer ticks
+            closeButton.Visible = false;
+            Cursor.Hide();
+            webView2.Enabled = false;
+
+            // Stop the timer
+            ctrl_timer.Stop();
+            Subscribe();
+
+        }
         private void closeButton_Click(object sender, EventArgs e)
         {
             Close();
         }
     }
-
-    public class GlobalUserEventHandler : IMessageFilter
+    public class AutoClosingMessageBox
     {
-        public delegate void UserEvent();
-
-        private const int WM_MOUSEMOVE = 0x0200;
-        private const int WM_MBUTTONDBLCLK = 0x209;
-        private const int WM_KEYDOWN = 0x100;
-        private const int WM_KEYUP = 0x101;
-
-        // screensavers and especially multi-window apps can get spurrious WM_MOUSEMOVE events
-        // that don't actually involve any movement (cursor chnages and some mouse driver software
-        // can generate them, for example) - so we record the actual mouse position and compare against it for actual movement.
-        private Point? lastMousePos;
-
-        public event UserEvent Event;
-
-        public bool PreFilterMessage(ref Message m)
+        System.Threading.Timer _timeoutTimer;
+        string _caption;
+        AutoClosingMessageBox(string text, string caption, int timeout)
         {
-            if ((m.Msg == WM_MOUSEMOVE) && (this.lastMousePos == null))
-            {
-                this.lastMousePos = Cursor.Position;
-            }
-
-            if (((m.Msg == WM_MOUSEMOVE) && (Cursor.Position != this.lastMousePos))
-                || (m.Msg > WM_MOUSEMOVE && m.Msg <= WM_MBUTTONDBLCLK) || m.Msg == WM_KEYDOWN || m.Msg == WM_KEYUP)
-            {
-
-                if (Event != null)
-                {
-                    Event();
-                }
-            }
-            // Always allow message to continue to the next filter control
-            return false;
+            _caption = caption;
+            _timeoutTimer = new System.Threading.Timer(OnTimerElapsed,
+                null, timeout, System.Threading.Timeout.Infinite);
+            using (_timeoutTimer)
+                MessageBox.Show(text, caption);
         }
+        public static void Show(string text, string caption, int timeout)
+        {
+            new AutoClosingMessageBox(text, caption, timeout);
+        }
+        void OnTimerElapsed(object state)
+        {
+            IntPtr mbWnd = FindWindow("#32770", _caption); // lpClassName is #32770 for MessageBox
+            if (mbWnd != IntPtr.Zero)
+                SendMessage(mbWnd, WM_CLOSE, IntPtr.Zero, IntPtr.Zero);
+            _timeoutTimer.Dispose();
+        }
+        const int WM_CLOSE = 0x0010;
+        [System.Runtime.InteropServices.DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr FindWindow(string lpClassName, string lpWindowName);
+        [System.Runtime.InteropServices.DllImport("user32.dll", CharSet = System.Runtime.InteropServices.CharSet.Auto)]
+        static extern IntPtr SendMessage(IntPtr hWnd, UInt32 Msg, IntPtr wParam, IntPtr lParam);
     }
 }
