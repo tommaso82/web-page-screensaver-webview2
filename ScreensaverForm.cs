@@ -145,10 +145,29 @@ namespace Web_Page_Screensaver
                 currentSiteIndex = 0;
             }
 
-            var url = Urls[currentSiteIndex];
+            var url = Urls[currentSiteIndex];            
+
+            int interval = prefsManager.GetRotationIntervalByScreen(screenNum);
+
+            if (url.Contains(";"))
+            {
+                var parts = url.Split(';');
+                if (int.TryParse(parts[1], out int parsedInterval))
+                {
+                    interval = parsedInterval;
+                }
+                url = parts[0];
+            }
+
+            if (timer.Interval / 1000 != interval) // Verifica se il valore di interval è diverso dall'intervallo corrente del timer
+            {
+                timer.Interval = interval * 1000;                
+            }
+
 
             BrowseTo(url);
         }
+
         private void KeyHook(object sender, KeyEventArgs e)
         {
             UserEvent();
