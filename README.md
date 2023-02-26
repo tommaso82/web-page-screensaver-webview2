@@ -18,5 +18,5 @@ That fork support multiple display and WebGL (Edge).
 
 ## Notes on this Fork
 
-In my fork i modified the event handler, moving from the IMessageFilter interface that was causing some stability issues to a more reliable low-level hooking library (MouseKeyHook). I also added a timer to handle the disappearance of the mouse and close button. I know that my code still have room for improvement, and I am open to any constructive feedback or suggestions you may have to help me continue to grow and develop as a programmer.
+In my fork i modified the event handler, moving from the IMessageFilter interface that was causing some stability issues to a more reliable low-level hooking library (MouseKeyHook). I also added a timer to handle the disappearance of the mouse and close button. Introduced the ability to set a custom timer for each URL by specifying a time in seconds after the URL, separated by a semicolon. This was done with the aim of making minimal changes to the code, without focusing on elegance or efficiency, I know that my code still have room for improvement, and I am open to any constructive feedback or suggestions you may have to help me continue to grow and develop as a programmer.
 
