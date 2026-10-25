@@ -2,6 +2,7 @@
 using System.Windows.Forms;
 using Microsoft.Win32;
 using System.IO;
+using Gma.System.MouseKeyHook;
 
 namespace Web_Page_Screensaver
 {
@@ -31,7 +32,7 @@ namespace Web_Page_Screensaver
             }
             else
             {
-                var formsList = new List<Form>();
+                var formsList = new List<ScreensaverForm>();
                 var screens = (new PreferencesManager()).EffectiveScreensList;
                 foreach (var screen in screens)
                 {
@@ -53,19 +54,125 @@ namespace Web_Page_Screensaver
 
     public class MultiFormContext : ApplicationContext
     {
-        public MultiFormContext(List<Form> forms)
+        private readonly List<ScreensaverForm> forms;
+        private readonly Timer controlsTimer = new Timer { Interval = 3500 };
+        private IKeyboardMouseEvents globalHook;
+        private Point lastMousePosition;
+        private bool controlsVisible;
+        private bool cursorHidden;
+        private bool exiting;
+
+        public MultiFormContext(List<ScreensaverForm> screensaverForms)
         {
+            forms = screensaverForms;
             foreach (var form in forms)
             {
-                form.FormClosed += (s, args) =>
-                {
-                    //When we have closed any form, 
-                    //end the program.
-                        ExitThread();
-                };
-
+                form.FormClosed += (s, e) => ExitThread();
                 form.Show();
             }
+
+            controlsTimer.Tick += (s, e) => HideControls();
+            lastMousePosition = Cursor.Position;
+            Cursor.Hide();
+            cursorHidden = true;
+
+            try
+            {
+                globalHook = Hook.GlobalEvents();
+                globalHook.KeyDown += OnKeyDown;
+                globalHook.MouseMoveExt += OnMouseMove;
+                globalHook.MouseDown += OnMouseInput;
+                globalHook.MouseWheel += OnMouseInput;
+            }
+            catch
+            {
+                globalHook?.Dispose();
+                SetCursorVisible(true);
+                throw;
+            }
+        }
+
+        private void OnKeyDown(object sender, KeyEventArgs e)
+        {
+            OnActivity();
+        }
+
+        private void OnMouseInput(object sender, MouseEventArgs e)
+        {
+            OnActivity();
+        }
+
+        private void OnMouseMove(object sender, MouseEventExtArgs e)
+        {
+            Point position = Cursor.Position;
+            if (Math.Abs(position.X - lastMousePosition.X) < 3 &&
+                Math.Abs(position.Y - lastMousePosition.Y) < 3)
+                return;
+
+            lastMousePosition = position;
+            OnActivity();
+        }
+
+        private void OnActivity()
+        {
+            if (exiting || controlsVisible) return;
+            if (forms.Count == 0 || forms[0].CloseOnActivity)
+            {
+                ExitThread();
+                return;
+            }
+
+            controlsVisible = true;
+            foreach (var form in forms) form.ShowControls();
+            SetCursorVisible(true);
+            controlsTimer.Start();
+        }
+
+        private void HideControls()
+        {
+            controlsTimer.Stop();
+            foreach (var form in forms) form.HideControls();
+            SetCursorVisible(false);
+            lastMousePosition = Cursor.Position;
+            controlsVisible = false;
+        }
+
+        private void SetCursorVisible(bool visible)
+        {
+            if (visible && cursorHidden)
+            {
+                Cursor.Show();
+                cursorHidden = false;
+            }
+            else if (!visible && !cursorHidden)
+            {
+                Cursor.Hide();
+                cursorHidden = true;
+            }
+        }
+
+        protected override void ExitThreadCore()
+        {
+            if (exiting) return;
+            exiting = true;
+            controlsTimer.Stop();
+            controlsTimer.Dispose();
+
+            if (globalHook != null)
+            {
+                globalHook.KeyDown -= OnKeyDown;
+                globalHook.MouseMoveExt -= OnMouseMove;
+                globalHook.MouseDown -= OnMouseInput;
+                globalHook.MouseWheel -= OnMouseInput;
+                globalHook.Dispose();
+                globalHook = null;
+            }
+
+            SetCursorVisible(true);
+            foreach (var form in forms)
+                if (!form.IsDisposed && !form.Disposing && form.Visible) form.Close();
+
+            base.ExitThreadCore();
         }
     }
 }

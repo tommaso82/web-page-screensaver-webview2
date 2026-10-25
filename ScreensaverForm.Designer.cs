@@ -55,7 +55,7 @@
             // webView2
             // 
             this.webView2.CreationProperties = null;
-            this.webView2.DefaultBackgroundColor = System.Drawing.Color.White;
+            this.webView2.DefaultBackgroundColor = System.Drawing.Color.Black;
             this.webView2.Dock = System.Windows.Forms.DockStyle.Fill;
             this.webView2.Location = new System.Drawing.Point(0, 0);
             this.webView2.Margin = new System.Windows.Forms.Padding(4);
@@ -78,8 +78,10 @@
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "ScreensaverForm";
+            this.ShowInTaskbar = false;
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
-            this.Text = "Form1";
+            this.Text = "Web Page Screensaver";
+            this.TopMost = true;
             this.Load += new System.EventHandler(this.ScreensaverForm_Load);
             ((System.ComponentModel.ISupportInitialize)(this.webView2)).EndInit();
             this.ResumeLayout(false);

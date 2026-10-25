@@ -8,20 +8,16 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.Win32;
 using System.Diagnostics;
-using Microsoft.Web.WebView2.Core;
-using Gma.System.MouseKeyHook;
+using Microsoft.Web.WebView2.WinForms;
 
 namespace Web_Page_Screensaver
 {
     public partial class ScreensaverForm : Form
     {
-        private DateTime StartTime;
         private Timer timer;
         private int currentSiteIndex = -1;
         private bool shuffleOrder;
         private List<string> urls;
-        private IKeyboardMouseEvents m_GlobalHook;
-        private Timer ctrl_timer = new Timer();
         private PreferencesManager prefsManager = new PreferencesManager();
 
         private int screenNum;
@@ -31,16 +27,16 @@ namespace Web_Page_Screensaver
 
         public ScreensaverForm(int? screenNumber = null)
         {
-            //userEventHandler = new GlobalUserEventHandler();
-            //serEventHandler.Event += new GlobalUserEventHandler.UserEvent(HandleUserActivity);            
             if (screenNumber == null) screenNum = prefsManager.EffectiveScreensList.FindIndex(s => s.IsPrimary);
             else screenNum = (int)screenNumber;
 
             InitializeComponent();
-            Subscribe();
-            ctrl_timer.Interval = 3500;
-            ctrl_timer.Tick += new EventHandler(ctrl_timer_Tick);
-            Cursor.Hide();
+            webView2.CreationProperties = new CoreWebView2CreationProperties
+            {
+                UserDataFolder = System.IO.Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "Web-Page-Screensaver", "WebView2")
+            };
         }
 
         public List<string> Urls
@@ -56,21 +52,6 @@ namespace Web_Page_Screensaver
             }
         }
 
-        public void Subscribe()
-        {
-            // Note: for the application hook, use the Hook.AppEvents() instead
-            m_GlobalHook = Hook.GlobalEvents();
-            m_GlobalHook.KeyDown += KeyHook;
-            m_GlobalHook.MouseMoveExt += MouseHook;
-        }
-        public void Unsubscribe()
-        {
-            m_GlobalHook.KeyDown -= KeyHook;
-            m_GlobalHook.MouseMoveExt -= MouseHook;
-
-            //It is recommened to dispose it
-            //m_GlobalHook.Dispose();
-        }
         private void ScreensaverForm_Load(object sender, EventArgs e)
         {
             if (Urls.Any())
@@ -96,15 +77,12 @@ namespace Web_Page_Screensaver
 
                     // Set up timer to rotate to the next URL
                     timer = new Timer();
-                    timer.Interval = prefsManager.GetRotationIntervalByScreen(screenNum) * 1000;
                     timer.Tick += (s, ee) => RotateSite();
-                    timer.Start();
                 }
 
                 // Display the first site in the list
                 RotateSite();
-
-                StartTime = DateTime.Now;
+                if (timer != null) timer.Start();
             }
             else
             {
@@ -145,67 +123,40 @@ namespace Web_Page_Screensaver
                 currentSiteIndex = 0;
             }
 
-            var url = Urls[currentSiteIndex];            
+            var url = Urls[currentSiteIndex];
+            const int maxSeconds = int.MaxValue / 1000;
+            int configuredSeconds = prefsManager.GetRotationIntervalByScreen(screenNum);
+            int seconds = configuredSeconds > 0 && configuredSeconds <= maxSeconds
+                ? configuredSeconds : 30;
 
-            int interval = prefsManager.GetRotationIntervalByScreen(screenNum);
-
-            if (url.Contains(";"))
+            int separator = url.LastIndexOf(';');
+            if (separator >= 0 && long.TryParse(url.Substring(separator + 1), out long customSeconds))
             {
-                var parts = url.Split(';');
-                if (int.TryParse(parts[1], out int parsedInterval))
-                {
-                    interval = parsedInterval;
-                }
-                url = parts[0];
+                if (customSeconds > 0 && customSeconds <= maxSeconds)
+                    seconds = (int)customSeconds;
+                url = url.Substring(0, separator);
             }
 
-            if (timer.Interval / 1000 != interval) // Verifica se il valore di interval è diverso dall'intervallo corrente del timer
-            {
-                timer.Interval = interval * 1000;                
-            }
-
+            if (timer != null && timer.Interval != seconds * 1000)
+                timer.Interval = seconds * 1000;
 
             BrowseTo(url);
         }
 
-        private void KeyHook(object sender, KeyEventArgs e)
-        {
-            UserEvent();
-        }
-        private void MouseHook(object sender, MouseEventExtArgs e)
-        {
-            UserEvent();
-        }
-        private void UserEvent()
-        {
-            if (StartTime.AddMilliseconds(20) > DateTime.Now) return;
+        public bool CloseOnActivity => prefsManager.CloseOnActivity;
 
-            if (prefsManager.CloseOnActivity)
-            {
-                Close();
-            }
-            else
-            {
-                closeButton.Visible = true;
-                Cursor.Show();
-                webView2.Enabled = true;
-                Unsubscribe();
-                ctrl_timer.Start();
-            }
+        public void ShowControls()
+        {
+            closeButton.Visible = true;
+            webView2.Enabled = true;
         }
 
-        private void ctrl_timer_Tick(object sender, EventArgs e)
+        public void HideControls()
         {
-            // Hide the close button and cursor when the timer ticks
             closeButton.Visible = false;
-            Cursor.Hide();
             webView2.Enabled = false;
-
-            // Stop the timer
-            ctrl_timer.Stop();
-            Subscribe();
-
         }
+
         private void closeButton_Click(object sender, EventArgs e)
         {
             Close();

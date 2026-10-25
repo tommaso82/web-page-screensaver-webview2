@@ -89,11 +89,11 @@ namespace Web_Page_Screensaver
                                 tabPage.Controls.Add(prefsByScreenUserControl);
                             }
                         }
-                        else if (screenTabControl.TabPages.Count == 1)
+                        else
                         {
-                            tabPage = screenTabControl.TabPages[0];
-                            screenUserControls =
-                                new List<PrefsByScreenUserControl>() { prefsByScreenUserControl1 };
+                            tabPage = screenTabControl.TabPages[i];
+                            if (i == 0 && screenTabControl.TabPages.Count == 1)
+                                screenUserControls = new List<PrefsByScreenUserControl>() { prefsByScreenUserControl1 };
                         }
 
                         LoadValuesForTab(i);
