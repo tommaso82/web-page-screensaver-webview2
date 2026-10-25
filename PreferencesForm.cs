@@ -154,7 +154,7 @@ namespace Web_Page_Screensaver
             {
                 var currentPrefsUserControl = screenUserControls[i];
                 List<string> urls = (from ListViewItem lvUrlsItem in currentPrefsUserControl.lvUrls.Items
-                    select lvUrlsItem.Text).ToList();
+                    select lvUrlsItem.Tag as string ?? lvUrlsItem.Text).ToList();
                 prefsManager.SetUrlsForScreen(i, urls);
                 prefsManager.SetRotationIntervalForScreen(i,
                     (int)currentPrefsUserControl.nudRotationInterval.Value);
@@ -171,7 +171,7 @@ namespace Web_Page_Screensaver
 
             foreach (var url in urls)
             {
-                currentPrefsUserControl.lvUrls.Items.Add(url);
+                currentPrefsUserControl.AddStoredUrl(url);
             }
         }
 

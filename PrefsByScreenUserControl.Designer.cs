@@ -34,6 +34,7 @@
             this.cbRandomize = new System.Windows.Forms.CheckBox();
             this.lvUrls = new System.Windows.Forms.ListView();
             this.addUrlButton = new System.Windows.Forms.Button();
+            this.editButton = new System.Windows.Forms.Button();
             this.upButton = new System.Windows.Forms.Button();
             this.urlButtonsTooltip = new System.Windows.Forms.ToolTip(this.components);
             this.downButton = new System.Windows.Forms.Button();
@@ -89,13 +90,18 @@
             this.lvUrls.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
             this.lvUrls.Dock = System.Windows.Forms.DockStyle.Fill;
             this.lvUrls.HideSelection = false;
-            this.lvUrls.LabelEdit = true;
+            this.lvUrls.FullRowSelect = true;
+            this.lvUrls.Columns.Add("URL", 205);
+            this.lvUrls.Columns.Add("Time (s)", 82);
             this.lvUrls.Location = new System.Drawing.Point(0, 0);
             this.lvUrls.Name = "lvUrls";
             this.lvUrls.Size = new System.Drawing.Size(300, 400);
             this.lvUrls.TabIndex = 0;
             this.lvUrls.UseCompatibleStateImageBehavior = false;
-            this.lvUrls.View = System.Windows.Forms.View.List;
+            this.lvUrls.View = System.Windows.Forms.View.Details;
+            this.lvUrls.ItemActivate += new System.EventHandler(this.lvUrls_ItemActivate);
+            this.lvUrls.SelectedIndexChanged += new System.EventHandler(this.lvUrls_SelectedIndexChanged);
+            this.lvUrls.Resize += new System.EventHandler(this.lvUrls_Resize);
             // 
             // addUrlButton
             // 
@@ -103,17 +109,29 @@
             this.addUrlButton.Location = new System.Drawing.Point(13, 13);
             this.addUrlButton.Margin = new System.Windows.Forms.Padding(4);
             this.addUrlButton.Name = "addUrlButton";
-            this.addUrlButton.Size = new System.Drawing.Size(77, 24);
+            this.addUrlButton.Size = new System.Drawing.Size(55, 24);
             this.addUrlButton.TabIndex = 11;
             this.addUrlButton.Text = "Add";
             this.addUrlButton.UseVisualStyleBackColor = true;
             this.addUrlButton.Click += new System.EventHandler(this.addUrlButton_Click);
+            //
+            // editButton
+            //
+            this.editButton.Enabled = false;
+            this.editButton.FlatStyle = System.Windows.Forms.FlatStyle.System;
+            this.editButton.Location = new System.Drawing.Point(74, 13);
+            this.editButton.Name = "editButton";
+            this.editButton.Size = new System.Drawing.Size(55, 24);
+            this.editButton.TabIndex = 16;
+            this.editButton.Text = "Edit";
+            this.editButton.UseVisualStyleBackColor = true;
+            this.editButton.Click += new System.EventHandler(this.editUrlButton_Click);
             // 
             // upButton
             // 
             this.upButton.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.upButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.upButton.Location = new System.Drawing.Point(140, 13);
+            this.upButton.Location = new System.Drawing.Point(166, 13);
             this.upButton.Margin = new System.Windows.Forms.Padding(0);
             this.upButton.Name = "upButton";
             this.upButton.Size = new System.Drawing.Size(24, 24);
@@ -127,7 +145,7 @@
             // 
             this.downButton.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.downButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.downButton.Location = new System.Drawing.Point(164, 13);
+            this.downButton.Location = new System.Drawing.Point(190, 13);
             this.downButton.Margin = new System.Windows.Forms.Padding(0);
             this.downButton.Name = "downButton";
             this.downButton.Size = new System.Drawing.Size(24, 24);
@@ -142,7 +160,7 @@
             this.deleteButton.FlatStyle = System.Windows.Forms.FlatStyle.System;
             this.deleteButton.Font = new System.Drawing.Font("Microsoft Sans Serif", 6F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.deleteButton.ForeColor = System.Drawing.Color.Red;
-            this.deleteButton.Location = new System.Drawing.Point(94, 13);
+            this.deleteButton.Location = new System.Drawing.Point(136, 13);
             this.deleteButton.Margin = new System.Windows.Forms.Padding(0);
             this.deleteButton.Name = "deleteButton";
             this.deleteButton.Size = new System.Drawing.Size(24, 24);
@@ -155,6 +173,7 @@
             // panel1
             // 
             this.panel1.Controls.Add(this.addUrlButton);
+            this.panel1.Controls.Add(this.editButton);
             this.panel1.Controls.Add(this.deleteButton);
             this.panel1.Controls.Add(this.cbRandomize);
             this.panel1.Controls.Add(this.downButton);
@@ -193,6 +212,7 @@
         public System.Windows.Forms.ListView lvUrls;
         private System.Windows.Forms.ToolTip urlButtonsTooltip;
         private System.Windows.Forms.Button addUrlButton;
+        private System.Windows.Forms.Button editButton;
         private System.Windows.Forms.Button upButton;
         private System.Windows.Forms.Button downButton;
         private System.Windows.Forms.Button deleteButton;

@@ -15,7 +15,7 @@ Build in Release configuration. Keep `Web-Page-Screensaver.scr` and `Web-Page-Sc
 
 ## URL rotation
 
-Set a default rotation interval for each screen, or append `;seconds` to an individual URL to override it, for example `https://example.com/;45`. Use positive whole seconds. URLs containing a literal semicolon followed by digits are ambiguous with this legacy syntax.
+Use **Add** or **Edit** to set each site's URL and optional display time. The list shows both fields; double-click an entry to edit it. The screen's rotation interval applies when no custom time is set. Existing `URL;seconds` settings are still supported without changing the registry format.
 
 ## Fork changes
 
