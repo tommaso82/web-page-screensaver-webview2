@@ -63,15 +63,16 @@
             // 
             // llProjectLocationUrl
             // 
-            this.llProjectLocationUrl.AutoSize = true;
-            this.llProjectLocationUrl.Location = new System.Drawing.Point(29, 31);
+            this.llProjectLocationUrl.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
+            this.llProjectLocationUrl.Location = new System.Drawing.Point(20, 31);
             this.llProjectLocationUrl.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.llProjectLocationUrl.Name = "llProjectLocationUrl";
-            this.llProjectLocationUrl.Size = new System.Drawing.Size(293, 17);
+            this.llProjectLocationUrl.Size = new System.Drawing.Size(366, 20);
             this.llProjectLocationUrl.TabIndex = 1;
             this.llProjectLocationUrl.TabStop = true;
             this.llProjectLocationUrl.Text = "GitHub project";
             this.llProjectLocationUrl.Tag = "https://github.com/tommaso82/web-page-screensaver-webview2";
+            this.llProjectLocationUrl.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             this.llProjectLocationUrl.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llProjectLocationUrl_LinkClicked);
             // 
             // okButton
