@@ -188,7 +188,7 @@ namespace Web_Page_Screensaver
 
         private void llProjectLocationUrl_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            System.Diagnostics.Process.Start(llProjectLocationUrl.Text);
+            System.Diagnostics.Process.Start((string)llProjectLocationUrl.Tag);
         }
 
         private void okButton_Click(object sender, EventArgs e)

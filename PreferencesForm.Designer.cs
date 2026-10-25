@@ -70,7 +70,8 @@
             this.llProjectLocationUrl.Size = new System.Drawing.Size(293, 17);
             this.llProjectLocationUrl.TabIndex = 1;
             this.llProjectLocationUrl.TabStop = true;
-            this.llProjectLocationUrl.Text = "https://github.com/tommaso82/web-page-screensaver-webview2";
+            this.llProjectLocationUrl.Text = "GitHub project";
+            this.llProjectLocationUrl.Tag = "https://github.com/tommaso82/web-page-screensaver-webview2";
             this.llProjectLocationUrl.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.llProjectLocationUrl_LinkClicked);
             // 
             // okButton
