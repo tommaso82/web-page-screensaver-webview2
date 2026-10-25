@@ -11,7 +11,7 @@ Display web pages as a Windows screensaver, with WebGL support and separate, mir
 
 ## Install
 
-Build in Release configuration. Keep `Web-Page-Screensaver.scr` and `Web-Page-Screensaver.scr.config` together: the latter enables per-monitor DPI support. Right-click the `.scr` file to **Install** or **Test** it, then use Windows Screen Saver Settings to configure URLs and monitors.
+Build in Release configuration. Keep `Web-Page-Screensaver.scr` and `Web-Page-Screensaver.scr.config` together. Right-click the `.scr` file to **Install** or **Test** it, then use Windows Screen Saver Settings to configure URLs and monitors.
 
 ## URL rotation
 
