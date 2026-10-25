@@ -10,7 +10,7 @@ Windows, .NET Framework 4.7.2, and the [Microsoft Edge WebView2 Runtime](https:/
 
 ## Installation
 
-Build `Web-Page-Screensaver.sln` in **Release**, or download a build from [GitHub Actions](https://github.com/tommaso82/web-page-screensaver-webview2/actions). Keep the `.scr`, `.scr.config`, and accompanying DLLs together. Right-click `Web-Page-Screensaver.scr` and select **Install**, then open Windows Screen Saver Settings to configure it.
+Build `Web-Page-Screensaver.sln` in **Release**, or download the Windows package from [Releases](https://github.com/tommaso82/web-page-screensaver-webview2/releases/latest). Keep the `.scr`, `.scr.config`, and accompanying DLLs together. Right-click `Web-Page-Screensaver.scr` and select **Install**, then open Windows Screen Saver Settings to configure it.
 
 ## Configuration
 

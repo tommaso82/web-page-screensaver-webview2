@@ -1,0 +1,81 @@
+name: Release Windows
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - .github/workflows/release.yml
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: NuGet/setup-nuget@v2
+      - uses: microsoft/setup-msbuild@v2
+
+      - name: Restore dependencies
+        run: nuget restore Web-Page-Screensaver.sln
+
+      - name: Build Release
+        run: msbuild Web-Page-Screensaver.sln /p:Configuration=Release /p:Platform="Any CPU" /m
+
+      - name: Package Windows screensaver
+        shell: pwsh
+        run: |
+          $tag = if ($env:GITHUB_REF_TYPE -eq 'tag') { $env:GITHUB_REF_NAME } else { 'v1.3.0' }
+          "RELEASE_TAG=$tag" >> $env:GITHUB_ENV
+          $source = Join-Path $env:GITHUB_WORKSPACE 'bin\Release'
+          $destination = Join-Path $env:RUNNER_TEMP "web-page-screensaver-$tag"
+
+          New-Item -Path $destination -ItemType Directory -Force | Out-Null
+          foreach ($name in @('Web-Page-Screensaver.scr', 'Web-Page-Screensaver.scr.config')) {
+            $file = Join-Path $source $name
+            if (-not (Test-Path $file -PathType Leaf)) { throw "Missing release file: $name" }
+            Copy-Item $file $destination
+          }
+          $libraries = @(Get-ChildItem $source -Filter '*.dll' -File)
+          if ($libraries.Count -eq 0) { throw 'No managed DLLs in build output' }
+          $libraries | Copy-Item -Destination $destination
+          $runtimes = Join-Path $source 'runtimes'
+          foreach ($arch in @('win-x86', 'win-x64', 'win-arm64')) {
+            if (-not (Test-Path (Join-Path $runtimes "$arch\native\WebView2Loader.dll"))) {
+              throw "Missing WebView2Loader.dll for $arch"
+            }
+          }
+          Copy-Item $runtimes -Destination $destination -Recurse
+
+          $archive = Join-Path $env:GITHUB_WORKSPACE "web-page-screensaver-$tag-windows.zip"
+          Compress-Archive -Path (Join-Path $destination '*') -DestinationPath $archive
+          "RELEASE_ASSET=$archive" >> $env:GITHUB_ENV
+
+      - name: Publish GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$env:RELEASE_TAG" --json tagName --jq .tagName 2>$null
+          if ($LASTEXITCODE -eq 0) { throw "Release $env:RELEASE_TAG already exists" }
+
+          if ($env:RELEASE_TAG -eq 'v1.3.0') {
+            $notes = @'
+          Windows screensaver powered by Microsoft Edge WebView2.
+
+          - Reliable fullscreen playback, multi-monitor layouts, and activity handling.
+          - Redesigned URL editor with individual display times and legacy settings compatibility.
+          - Improved startup, navigation recovery, and configuration handling.
+
+          Requires Windows, .NET Framework 4.7.2, and the Microsoft Edge WebView2 Runtime.
+          Extract the ZIP, keep its contents together, and right-click the .scr file to install.
+          '@
+            gh release create "$env:RELEASE_TAG" "$env:RELEASE_ASSET" --target "$env:GITHUB_SHA" --title "Web Page Screensaver $env:RELEASE_TAG" --notes "$notes"
+          } else {
+            gh release create "$env:RELEASE_TAG" "$env:RELEASE_ASSET" --target "$env:GITHUB_SHA" --title "Web Page Screensaver $env:RELEASE_TAG" --generate-notes
+          }
+          if ($LASTEXITCODE -ne 0) { throw "Failed to publish $env:RELEASE_TAG" }
