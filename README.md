@@ -2,6 +2,8 @@
 
 A Windows screensaver powered by Microsoft Edge WebView2. Displays websites with WebGL support, URL rotation, and separate, mirrored, or spanning multi-monitor layouts. Based on [cwc/web-page-screensaver](https://github.com/cwc/web-page-screensaver).
 
+![Web Page Screensaver settings](docs/settings-window.png)
+
 ## Requirements
 
 Windows, .NET Framework 4.7.2, and the [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/).
