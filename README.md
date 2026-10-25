@@ -1,22 +1,17 @@
-# Web Page Screensaver (WebView2)
+# Web Page Screensaver
 
-Display web pages as a Windows screensaver, with WebGL support and separate, mirrored, or spanning multi-monitor layouts.
-
-![Screenshot](https://user-images.githubusercontent.com/96838258/148791663-cb466735-c6c2-45cc-ab1b-b205c0fef466.png)
+A Windows screensaver powered by Microsoft Edge WebView2. Displays websites with WebGL support, URL rotation, and separate, mirrored, or spanning multi-monitor layouts. Based on [cwc/web-page-screensaver](https://github.com/cwc/web-page-screensaver).
 
 ## Requirements
 
-- .NET Framework 4.7.2
-- Microsoft Edge WebView2 Runtime
+Windows, .NET Framework 4.7.2, and the [Microsoft Edge WebView2 Runtime](https://developer.microsoft.com/microsoft-edge/webview2/).
 
-## Install
+## Installation
 
-Build in Release configuration. Keep `Web-Page-Screensaver.scr` and `Web-Page-Screensaver.scr.config` together. Right-click the `.scr` file to **Install** or **Test** it, then use Windows Screen Saver Settings to configure URLs and monitors.
+Build `Web-Page-Screensaver.sln` in **Release**, or download a build from [GitHub Actions](https://github.com/tommaso82/web-page-screensaver-webview2/actions). Keep the `.scr`, `.scr.config`, and accompanying DLLs together. Right-click `Web-Page-Screensaver.scr` and select **Install**, then open Windows Screen Saver Settings to configure it.
 
-## URL rotation
+## Configuration
 
-Use **Add** or **Edit** to set each site's URL and optional display time. The list shows both fields; double-click an entry to edit it. The screen's rotation interval applies when no custom time is set. Existing `URL;seconds` settings are still supported without changing the registry format.
+Add and edit websites using the built-in URL editor. Set a display time per site or use the screen default; reorder or shuffle URLs as needed. Activity can close the screensaver or reveal temporary controls.
 
-## Fork changes
-
-Uses Edge WebView2 in place of the legacy browser, a shared mouse/keyboard hook for reliable activity detection, and optional timed on-screen controls. The WebView2 user-data folder is stored under the current user's local application data.
+Existing `URL;seconds` settings remain compatible.
