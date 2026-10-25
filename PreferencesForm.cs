@@ -159,8 +159,8 @@ namespace Web_Page_Screensaver
                 prefsManager.SetRotationIntervalForScreen(i,
                     (int)currentPrefsUserControl.nudRotationInterval.Value);
                 prefsManager.SetRandomizeFlagForScreen(i, currentPrefsUserControl.cbRandomize.Checked);
-                prefsManager.CloseOnActivity = cbCloseOnActivity.Checked;
             }
+            prefsManager.CloseOnActivity = cbCloseOnActivity.Checked;
         }
 
         private void loadUrlsForTabToControl(int screenNum, PrefsByScreenUserControl currentPrefsUserControl)

@@ -1,0 +1,29 @@
+name: Build screensaver
+
+on:
+  push:
+    branches:
+      - master
+      - 'fix/**'
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - uses: NuGet/setup-nuget@v2
+      - uses: microsoft/setup-msbuild@v2
+      - name: Restore dependencies
+        run: nuget restore Web-Page-Screensaver.sln
+      - name: Build Release
+        run: msbuild Web-Page-Screensaver.sln /p:Configuration=Release /p:Platform="Any CPU" /m
+      - name: Upload screensaver
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-page-screensaver
+          path: bin/Release/**
+          if-no-files-found: error

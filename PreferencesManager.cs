@@ -25,11 +25,10 @@
         private const string RANDOMIZE_PREF_DEFAULT = "False";
         private const string CLOSE_ON_ACTIVITY_PREF_DEFAULT = "True";
 
-        private static RegistryKey reg = Registry.CurrentUser.CreateSubKey(Program.KEY);
-
         public PreferencesManager()
         {
-            LoadPreferences();
+            using (var reg = Registry.CurrentUser.CreateSubKey(Program.KEY))
+                LoadPreferences(reg);
         }
 
         private List<BasicScreenInfo> effectiveScreensListField;
@@ -236,26 +235,36 @@
 
         public void SavePreferences()
         {
-            reg.SetValue(MULTISCREEN_PREF, MultiScreenMode);
-            reg.SetValue(CLOSE_ON_ACTIVITY_PREF, CloseOnActivity);
-            SaveUrlsAllScreens();
-            SavePrefAllScreens(INTERVAL_PREF, rotationIntervalsByScreen);
-            SavePrefAllScreens(RANDOMIZE_PREF, randomizeFlagByScreen);
-            reg.Close();
+            using (var reg = Registry.CurrentUser.CreateSubKey(Program.KEY))
+            {
+                reg.SetValue(MULTISCREEN_PREF, MultiScreenMode.ToString());
+                reg.SetValue(CLOSE_ON_ACTIVITY_PREF, CloseOnActivity.ToString());
+                SaveUrlsAllScreens(reg);
+                SavePrefAllScreens(reg, INTERVAL_PREF, rotationIntervalsByScreen);
+                SavePrefAllScreens(reg, RANDOMIZE_PREF, randomizeFlagByScreen);
+            }
         }
 
-        private void LoadPreferences()  
+        private void LoadPreferences(RegistryKey reg)
         {
-            MultiScreenMode = (MultiScreenModeItem)Enum.Parse(typeof(MultiScreenModeItem), (string)reg.GetValue(MULTISCREEN_PREF, MULTISCREEN_PREF_DEFAULT));
-            CloseOnActivity = bool.Parse((string)reg.GetValue(CLOSE_ON_ACTIVITY_PREF, CLOSE_ON_ACTIVITY_PREF_DEFAULT));
-            urlsByScreen = LoadUrlsAllScreens();
-            rotationIntervalsByScreen = LoadPrefAllScreens<int>(INTERVAL_PREF, INTERVAL_PREF_DEFAULT, INTERVAL_PREF_DEFAULT);
-            randomizeFlagByScreen = LoadPrefAllScreens<bool>(RANDOMIZE_PREF, RANDOMIZE_PREF_DEFAULT, RANDOMIZE_PREF_DEFAULT);
+            MultiScreenModeItem mode;
+            string savedMode = Convert.ToString(reg.GetValue(MULTISCREEN_PREF));
+            MultiScreenMode = Enum.TryParse(savedMode, true, out mode) &&
+                              Enum.IsDefined(typeof(MultiScreenModeItem), mode)
+                ? mode : MultiScreenModeItem.Separate;
+
+            bool closeOnActivity;
+            CloseOnActivity = bool.TryParse(Convert.ToString(reg.GetValue(CLOSE_ON_ACTIVITY_PREF)), out closeOnActivity)
+                ? closeOnActivity : true;
+
+            urlsByScreen = LoadUrlsAllScreens(reg);
+            rotationIntervalsByScreen = LoadPrefAllScreens<int>(reg, INTERVAL_PREF, INTERVAL_PREF_DEFAULT, INTERVAL_PREF_DEFAULT);
+            randomizeFlagByScreen = LoadPrefAllScreens<bool>(reg, RANDOMIZE_PREF, RANDOMIZE_PREF_DEFAULT, RANDOMIZE_PREF_DEFAULT);
         }
 
-        private List<List<string>> LoadUrlsAllScreens()
+        private List<List<string>> LoadUrlsAllScreens(RegistryKey reg)
         {
-            List<string> strings = LoadPrefAllScreens<string>(URL_PREF, URL_PREF_PRIMARYSCREEN_DEFAULT, URL_PREF_NONPRIMARYSCREEN_DEFAULT);
+            List<string> strings = LoadPrefAllScreens<string>(reg, URL_PREF, URL_PREF_PRIMARYSCREEN_DEFAULT, URL_PREF_NONPRIMARYSCREEN_DEFAULT);
             var allUrls = strings.Select(stringValue => string.IsNullOrWhiteSpace(stringValue)
                                                      ? new List<string>()
                                                      : stringValue.Split(' ').ToList())
@@ -268,35 +277,35 @@
             // and SetUrlsByScreen() methods.
             const string TempDefaultValue = "DEFAULT VALUE";
             int i = allUrls.Count;
-            string  nextScreenUrlsPrefResult = LoadPrefByScreen<string>(i, URL_PREF, TempDefaultValue, TempDefaultValue);
+            string  nextScreenUrlsPrefResult = LoadPrefByScreen<string>(reg, i, URL_PREF, TempDefaultValue, TempDefaultValue);
             while (nextScreenUrlsPrefResult != TempDefaultValue)
             {
                 allUrls.Add(
                     string.IsNullOrWhiteSpace(nextScreenUrlsPrefResult)
                         ? new List<string>()
                         : nextScreenUrlsPrefResult.Split(' ').ToList());
-                nextScreenUrlsPrefResult = LoadPrefByScreen<string>(++i, URL_PREF, TempDefaultValue, TempDefaultValue);
+                nextScreenUrlsPrefResult = LoadPrefByScreen<string>(reg, ++i, URL_PREF, TempDefaultValue, TempDefaultValue);
             }
 
             return allUrls;
         }
 
-        private List<T> LoadPrefAllScreens<T>(string prefBaseName, string primaryScreenPrefDefaultValue, string nonPrimaryScreenPrefDefaultValue)
+        private List<T> LoadPrefAllScreens<T>(RegistryKey reg, string prefBaseName, string primaryScreenPrefDefaultValue, string nonPrimaryScreenPrefDefaultValue)
         {
             List<T> myList = new List<T>();
             for (int i = 0; i < Screen.AllScreens.Length; i++)
             {
-                myList.Add(LoadPrefByScreen<T>(i, prefBaseName, primaryScreenPrefDefaultValue, nonPrimaryScreenPrefDefaultValue));
+                myList.Add(LoadPrefByScreen<T>(reg, i, prefBaseName, primaryScreenPrefDefaultValue, nonPrimaryScreenPrefDefaultValue));
             }
             return myList;
         }
 
-        private void SaveUrlsAllScreens()
+        private void SaveUrlsAllScreens(RegistryKey reg)
         {
-            SavePrefAllScreens(URL_PREF, urlsByScreen.Select(urlList => String.Join(" ", urlList)).ToList());
+            SavePrefAllScreens(reg, URL_PREF, urlsByScreen.Select(urlList => String.Join(" ", urlList)).ToList());
         }
 
-        private void SavePrefAllScreens<T>(string preferenceName, List<T> prefsList)
+        private void SavePrefAllScreens<T>(RegistryKey reg, string preferenceName, List<T> prefsList)
         {
             for (int i = 0; i < prefsList.Count(); i++)
             {
@@ -304,37 +313,41 @@
             }
         }
 
-        private T LoadPrefByScreen<T>(int screenNum, string prefBaseName, string primaryScreenPrefDefaultValue, string nonPrimaryScreenPrefDefaultValue)
+        private T LoadPrefByScreen<T>(RegistryKey reg, int screenNum, string prefBaseName,
+            string primaryScreenPrefDefaultValue, string nonPrimaryScreenPrefDefaultValue)
         {
-            string screenSpecificPrefEntryName = ScreenSpecificPrefName(prefBaseName, screenNum);
-            object regValue = reg.GetValue(screenSpecificPrefEntryName);
-            if (regValue == null)
-            {
-                // no screen-specific entry exists.
-                // for backward compatibility, if the current tab is only one, or else for the primary screen only,
-                // look for the non-screen-specific pref setting, and if found, move it from there.
-                // This is a one-off preferences upgrade.
+            string name = ScreenSpecificPrefName(prefBaseName, screenNum);
+            bool primary = Screen.AllScreens.Length == 1 ||
+                           (screenNum < Screen.AllScreens.Length && Screen.AllScreens[screenNum].Primary);
+            string fallback = primary ? primaryScreenPrefDefaultValue : nonPrimaryScreenPrefDefaultValue;
+            object value = reg.GetValue(name);
 
-                if (Screen.AllScreens.Length == 1 || (screenNum < Screen.AllScreens.Length && Screen.AllScreens[screenNum].Primary))
+            if (value == null && primary && reg.GetValueNames().Contains(prefBaseName))
+            {
+                value = reg.GetValue(prefBaseName);
+                if (value != null)
                 {
-                    if (reg.GetValueNames().Contains(prefBaseName))
-                    {
-                        regValue = reg.GetValue(prefBaseName);
-                        reg.DeleteValue(prefBaseName);
-                        reg.SetValue(screenSpecificPrefEntryName, (T)Convert.ChangeType(regValue, typeof(T)));
-                    }
-                    else
-                    {
-                        regValue = (T)Convert.ChangeType(primaryScreenPrefDefaultValue, typeof(T));
-                    }
-                }
-                else
-                {
-                    regValue = (T)Convert.ChangeType(nonPrimaryScreenPrefDefaultValue, typeof(T));
+                    reg.SetValue(name, value);
+                    reg.DeleteValue(prefBaseName);
                 }
             }
 
-            return (T)Convert.ChangeType(regValue, typeof(T));
+            try
+            {
+                T converted = (T)Convert.ChangeType(value ?? fallback, typeof(T));
+                if (typeof(T) == typeof(int))
+                {
+                    int interval = (int)(object)converted;
+                    if (interval < 1 || interval > 999)
+                        return (T)Convert.ChangeType(fallback, typeof(T));
+                }
+                return converted;
+            }
+            catch (FormatException) { }
+            catch (InvalidCastException) { }
+            catch (OverflowException) { }
+
+            return (T)Convert.ChangeType(fallback, typeof(T));
         }
 
         private static string ScreenSpecificPrefName(string prefBaseName, int screenNum)

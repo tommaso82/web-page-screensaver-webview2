@@ -1,21 +1,22 @@
-# web-page-screensaver-webview2
+# Web Page Screensaver (WebView2)
 
-Display a web page as your screensaver.  
-That fork support multiple display and WebGL (Edge). 
+Display web pages as a Windows screensaver, with WebGL support and separate, mirrored, or spanning multi-monitor layouts.
 
-![image](https://user-images.githubusercontent.com/96838258/148791663-cb466735-c6c2-45cc-ab1b-b205c0fef466.png)
+![Screenshot](https://user-images.githubusercontent.com/96838258/148791663-cb466735-c6c2-45cc-ab1b-b205c0fef466.png)
 
-## Dependencies
+## Requirements
 
-.NET Framework 4.7
+- .NET Framework 4.7.2
+- Microsoft Edge WebView2 Runtime
 
-## Usage
+## Install
 
-1. Find Web-Page-Screensaver.scr on your computer, right click it
-2. Select "Install" to install, or "Test" to test it out without installing
-3. If installing, the Screen Saver Settings dialog will pop up with the correct screen saver selected
-4. Use the `Settings...` button in the same dialog to change the web page(s) displayed by the screen saver
+Build in Release configuration. Keep `Web-Page-Screensaver.scr` and `Web-Page-Screensaver.scr.config` together: the latter enables per-monitor DPI support. Right-click the `.scr` file to **Install** or **Test** it, then use Windows Screen Saver Settings to configure URLs and monitors.
 
-## Notes on this Fork
+## URL rotation
 
-In my fork i modified the event handler, moving from the IMessageFilter interface that was causing some stability issues to a more reliable low-level hooking library (MouseKeyHook). I also added a timer to handle the disappearance of the mouse and close button. Introduced the ability to set a custom timer for each URL by specifying a time in seconds after the URL, separated by a semicolon. This was done with the aim of making minimal changes to the code, without focusing on elegance or efficiency, I know that my code still have room for improvement.
+Set a default rotation interval for each screen, or append `;seconds` to an individual URL to override it, for example `https://example.com/;45`. Use positive whole seconds. URLs containing a literal semicolon followed by digits are ambiguous with this legacy syntax.
+
+## Fork changes
+
+Uses Edge WebView2 in place of the legacy browser, a shared mouse/keyboard hook for reliable activity detection, and optional timed on-screen controls. The WebView2 user-data folder is stored under the current user's local application data.

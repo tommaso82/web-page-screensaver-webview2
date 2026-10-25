@@ -47,6 +47,7 @@
             // 
             this.nudRotationInterval.Location = new System.Drawing.Point(15, 88);
             this.nudRotationInterval.Margin = new System.Windows.Forms.Padding(4);
+            this.nudRotationInterval.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
             this.nudRotationInterval.Maximum = new decimal(new int[] {
             999,
             0,

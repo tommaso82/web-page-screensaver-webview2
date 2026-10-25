@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using Microsoft.Win32;
 using System.Diagnostics;
+using System.Linq;
+using System.Windows.Forms;
+using Microsoft.Web.WebView2.Core;
 using Microsoft.Web.WebView2.WinForms;
 
 namespace Web_Page_Screensaver
@@ -15,6 +11,8 @@ namespace Web_Page_Screensaver
     public partial class ScreensaverForm : Form
     {
         private Timer timer;
+        private Timer retryTimer;
+        private string currentUrl;
         private int currentSiteIndex = -1;
         private bool shuffleOrder;
         private List<string> urls;
@@ -36,6 +34,23 @@ namespace Web_Page_Screensaver
                 UserDataFolder = System.IO.Path.Combine(
                     Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                     "Web-Page-Screensaver", "WebView2")
+            };
+            webView2.CoreWebView2InitializationCompleted += (s, e) =>
+            {
+                if (!e.IsSuccess)
+                    Trace.TraceError("WebView2 initialization failed: " + e.InitializationException);
+            };
+            webView2.NavigationCompleted += (s, e) =>
+            {
+                if (e.IsSuccess)
+                {
+                    retryTimer?.Stop();
+                }
+                else if (e.WebErrorStatus != CoreWebView2WebErrorStatus.OperationCanceled)
+                {
+                    Trace.TraceWarning("WebView2 navigation failed: " + e.WebErrorStatus);
+                    ScheduleRetry();
+                }
             };
         }
 
@@ -92,26 +107,46 @@ namespace Web_Page_Screensaver
 
         private void BrowseTo(string url)
         {
-            // Disable the user event handler while navigating
-
             if (string.IsNullOrWhiteSpace(url))
             {
                 webView2.Visible = false;
+                return;
             }
-            else
-            {
-                webView2.Visible = true;
-                try
-                {
-                    Debug.WriteLine($"Navigating: {url}");
 
-                    webView2.Source = new Uri(url);
-                }
-                catch
-                {
-                    // This can happen if IE pops up a window that isn't closed before the next call to Navigate()
-                }
+            Uri address;
+            if (!Uri.TryCreate(url, UriKind.Absolute, out address))
+            {
+                Trace.TraceWarning("Invalid screensaver URL: " + url);
+                webView2.Visible = false;
+                return;
             }
+
+            webView2.Visible = true;
+            try
+            {
+                webView2.Source = address;
+            }
+            catch (Exception ex)
+            {
+                Trace.TraceError("WebView2 navigation error: " + ex);
+                ScheduleRetry();
+            }
+        }
+
+        private void ScheduleRetry()
+        {
+            if (Urls.Count != 1 || IsDisposed || Disposing) return;
+
+            if (retryTimer == null)
+            {
+                retryTimer = new Timer { Interval = 30000 };
+                retryTimer.Tick += (s, e) =>
+                {
+                    retryTimer.Stop();
+                    BrowseTo(currentUrl);
+                };
+            }
+            retryTimer.Start();
         }
 
         private void RotateSite()
@@ -140,7 +175,15 @@ namespace Web_Page_Screensaver
             if (timer != null && timer.Interval != seconds * 1000)
                 timer.Interval = seconds * 1000;
 
+            currentUrl = url;
             BrowseTo(url);
+        }
+
+        protected override void OnFormClosed(FormClosedEventArgs e)
+        {
+            timer?.Dispose();
+            retryTimer?.Dispose();
+            base.OnFormClosed(e);
         }
 
         public bool CloseOnActivity => prefsManager.CloseOnActivity;
